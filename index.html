@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Zone Converter</title>
+    <style>
+        :root {
+            --bg-primary:    #f5f6f8;
+            --bg-card:       #ffffff;
+            --bg-secondary:  #f0f2f5;
+            --text-primary:  #1a202c;
+            --text-secondary:#4a5568;
+            --border-color:  #d1d5db;
+            --accent:        #2563eb;
+            --accent-hover:  #1d4ed8;
+            --success:       #047857;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.05);
+        }
+        [data-theme="dark"] {
+            --bg-primary:    #111827;
+            --bg-card:       #1f2937;
+            --bg-secondary:  #374151;
+            --text-primary:  #f9fafb;
+            --text-secondary:#9ca3af;
+            --border-color:  #4b5563;
+            --accent:        #60a5fa;
+            --accent-hover:  #93c5fd;
+            --success:       #34d399;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+            transition: background 0.25s, color 0.25s;
+            line-height: 1.5;
+        }
+
+        .page-header {
+            max-width: 640px;
+            margin: 0 auto 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 640px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .title-section { text-align: center; margin-bottom: 32px; }
+        h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .subtitle { color: var(--text-secondary); font-size: 0.95rem; }
+
+        /* Theme & source buttons */
+        .theme-btn, .source-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: background 0.2s, color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        .theme-btn { font-size: 1.1rem; }
+        .theme-btn:hover, .source-btn:hover { background: var(--bg-secondary); }
+        .theme-btn:focus-visible, .source-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+        .source-btn svg {
+            flex-shrink: 0;
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+        }
+
+        input[type="date"],
+        input[type="text"] {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input[type="date"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        [data-theme="dark"] input[type="date"]:focus,
+        [data-theme="dark"] input[type="text"]:focus {
+            box-shadow: 0 0 0 3px rgba(96,165,250,0.2);
+        }
+
+        /* Select */
+        .time-row { display: flex; gap: 8px; align-items: center; }
+        .time-row select {
+            padding: 11px 32px 11px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .time-row select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        [data-theme="dark"] .time-row select:focus { box-shadow: 0 0 0 3px rgba(96,165,250,0.2); }
+        .sel-hour { width: 90px; }
+        .sel-min  { width: 90px; }
+        .sel-ampm { width: 78px; }
+        .time-colon { font-size: 1.2rem; font-weight: 700; color: var(--text-secondary); flex-shrink: 0; }
+
+        /* Pill toggle */
+        .label-control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .label-control-row .form-label { margin-bottom: 0; }
+        .pill-group {
+            display: inline-flex;
+            border: 1.5px solid var(--border-color);
+            border-radius: 7px;
+            overflow: hidden;
+        }
+        .pill-group button {
+            padding: 5px 14px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .pill-group button.active { background: var(--accent); color: #fff; }
+        .pill-group button:focus-visible { outline: 3px solid var(--accent); outline-offset: -2px; }
+
+        /* Switch */
+        .switch-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch-track {
+            position: absolute; inset: 0;
+            background: var(--border-color);
+            border-radius: 24px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .switch-track::after {
+            content: ''; position: absolute;
+            width: 18px; height: 18px;
+            left: 3px; top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .switch input:checked + .switch-track { background: var(--accent); }
+        .switch input:checked + .switch-track::after { transform: translateX(18px); }
+        .switch input:focus-visible + .switch-track { outline: 3px solid var(--accent); outline-offset: 2px; }
+        .switch-label { font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; user-select: none; }
+
+        /* Timezone search */
+        .tz-wrapper { position: relative; }
+        .tz-input-wrap { position: relative; }
+        .tz-icon {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+            font-size: 0.88rem;
+            line-height: 1;
+        }
+        .tz-input { padding-left: 34px !important; }
+        .tz-hint { font-size: 0.78rem; color: var(--text-secondary); margin-top: 5px; }
+        .tz-hint em { font-style: normal; color: var(--accent); font-weight: 500; }
+
+        .tz-dropdown {
+            position: absolute;
+            top: calc(100% + 4px); left: 0; right: 0;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            max-height: 260px;
+            overflow-y: auto;
+            z-index: 200;
+            display: none;
+        }
+        .tz-dropdown.open { display: block; }
+
+        .tz-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            cursor: pointer;
+            gap: 12px;
+            transition: background 0.1s;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tz-item:last-child { border-bottom: none; }
+        .tz-item:hover, .tz-item:focus { background: var(--bg-secondary); outline: none; }
+        .tz-item.selected { background: rgba(37,99,235,0.07); }
+        [data-theme="dark"] .tz-item.selected { background: rgba(96,165,250,0.1); }
+        .tz-item-left { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .tz-item-name { font-size: 0.9rem; color: var(--text-primary); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tz-item.selected .tz-item-name { color: var(--accent); font-weight: 600; }
+        .tz-item-region { font-size: 0.76rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tz-item-offset {
+            font-size: 0.76rem;
+            font-family: 'Courier New', monospace;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            background: var(--bg-secondary);
+            padding: 2px 7px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            font-weight: 600;
+        }
+        .tz-item.selected .tz-item-offset { color: var(--accent); }
+        .tz-empty { padding: 16px; text-align: center; color: var(--text-secondary); font-size: 0.88rem; }
+
+        /* Quick parse */
+        .quick-parse-wrap { margin-bottom: 24px; }
+        .quick-parse-input-row { display: flex; gap: 8px; }
+        .quick-parse-input-row input { flex: 1; }
+        .btn-parse {
+            padding: 11px 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .btn-parse:hover { background: var(--accent-hover); }
+        .btn-parse:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+        .parse-feedback {
+            margin-top: 7px;
+            font-size: 0.8rem;
+            min-height: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .parse-feedback.success { color: var(--success); }
+        .parse-feedback.error   { color: #dc2626; }
+        [data-theme="dark"] .parse-feedback.error { color: #f87171; }
+        .parse-or {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .parse-or-line { flex: 1; height: 1px; background: var(--border-color); }
+        .parse-or-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 12px 20px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+        .btn-outline {
+            padding: 10px 16px;
+            background: transparent;
+            color: var(--accent);
+            border: 1.5px solid var(--accent);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-outline:hover { background: var(--accent); color: #fff; }
+        .btn-outline:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+        .btn-success {
+            padding: 10px 16px;
+            background: var(--success);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-success:hover { opacity: 0.88; }
+        .btn-success:focus-visible { outline: 3px solid var(--success); outline-offset: 2px; }
+
+        /* Result */
+        .result-box {
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .share-url-box {
+            background: var(--bg-secondary);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            word-break: break-all;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+
+        /* Preview box */
+        .preview-separator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0 16px;
+        }
+        .preview-separator-line { flex: 1; height: 1px; background: var(--border-color); }
+        .preview-separator-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .preview-wrapper {
+            background: var(--bg-secondary);
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .preview-header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .preview-header-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--border-color);
+        }
+        .preview-header-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .preview-body { padding: 16px; }
+        .preview-note {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Display view (used in both full display and preview) */
+        .display-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .preview-body .display-card {
+            background: var(--bg-card);
+            margin-bottom: 0;
+        }
+        .display-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .display-time-main {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+        .display-date-tz { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px; }
+        .display-sep { border: none; border-top: 1px solid var(--border-color); margin: 16px 0; }
+        .display-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .display-row:last-child { margin-bottom: 0; }
+        .display-row .display-label { margin-bottom: 0; }
+        .display-row-val { font-size: 0.92rem; color: var(--text-primary); font-weight: 500; text-align: right; }
+
+        .display-utc-time {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .display-utc-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .conversion-arrow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 18px 0 14px;
+        }
+        .arrow-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+        .arrow-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            padding: 3px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background: var(--bg-card);
+        }
+
+        /* Countdown */
+        .countdown-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .countdown-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 8px; }
+        .countdown-time { font-size: 1.5rem; font-weight: 700; font-family: 'Courier New', monospace; color: var(--text-primary); }
+
+        .display-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .footer { text-align: center; margin-top: 28px; color: var(--text-secondary); font-size: 0.85rem; }
+
+        @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+        @media (max-width: 480px) {
+            .container { padding: 22px 16px; }
+            h1 { font-size: 1.4rem; }
+            .display-time-main { font-size: 1.6rem; }
+            .display-actions, .result-actions { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+<div class="page-header">
+    <div></div>
+    <div class="header-actions">
+        <a href="https://gitlab.com/emchang/utc-to-local/" target="_blank" rel="noopener" class="source-btn" aria-label="View source on GitLab">
+            <svg height="16" width="16" viewBox="0 0 25 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M24.507 9.5l-.034-.09L21.082.562a.896.896 0 00-1.694.091l-2.29 7.01H7.825L5.535.653a.898.898 0 00-1.694-.09L.451 9.411.416 9.5a6.297 6.297 0 002.09 7.271l.012.01.03.022 5.16 3.867 2.56 1.935 1.554 1.176a1.051 1.051 0 001.268 0l1.554-1.176 2.56-1.935 5.19-3.89.014-.01A6.297 6.297 0 0024.507 9.5z"/>
+            </svg>
+            Source
+        </a>
+        <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle dark mode">
+            <span id="themeIcon">☀️</span>
+        </button>
+    </div>
+</div>
+
+<main class="container" role="main">
+    <div class="title-section">
+        <h1>Time Zone Converter</h1>
+        <p class="subtitle">Share a time — everyone sees it in their own timezone</p>
+    </div>
+    <div id="content"></div>
+</main>
+
+<footer class="footer">Made with ❤️ for distributed teams</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════════════════
+function toggleTheme() {
+    const next = document.body.dataset.theme === 'light' ? 'dark' : 'light';
+    document.body.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    document.getElementById('themeIcon').textContent = next === 'light' ? '☀️' : '🌙';
+}
+(function initTheme() {
+    const t = localStorage.getItem('theme') || 'light';
+    document.body.dataset.theme = t;
+    document.getElementById('themeIcon').textContent = t === 'light' ? '☀️' : '🌙';
+})();
+
+// ══════════════════════════════════════════════════════════
+// TIMEZONE DATABASE
+// [displayName, region, ianaKey]
+// ══════════════════════════════════════════════════════════
+const TZ_DATA = [
+    ['UTC / GMT',                   'Universal',                        'UTC'],
+    ['GMT-12',                      'GMT offset −12:00',                'Etc/GMT+12'],
+    ['GMT-11',                      'GMT offset −11:00',                'Etc/GMT+11'],
+    ['GMT-10',                      'GMT offset −10:00',                'Etc/GMT+10'],
+    ['GMT-9',                       'GMT offset −09:00',                'Etc/GMT+9'],
+    ['GMT-8',                       'GMT offset −08:00',                'Etc/GMT+8'],
+    ['GMT-7',                       'GMT offset −07:00',                'Etc/GMT+7'],
+    ['GMT-6',                       'GMT offset −06:00',                'Etc/GMT+6'],
+    ['GMT-5',                       'GMT offset −05:00',                'Etc/GMT+5'],
+    ['GMT-4',                       'GMT offset −04:00',                'Etc/GMT+4'],
+    ['GMT-3',                       'GMT offset −03:00',                'Etc/GMT+3'],
+    ['GMT-2',                       'GMT offset −02:00',                'Etc/GMT+2'],
+    ['GMT-1',                       'GMT offset −01:00',                'Etc/GMT+1'],
+    ['GMT+0',                       'GMT offset ±00:00',                'Etc/GMT'],
+    ['GMT+1',                       'GMT offset +01:00',                'Etc/GMT-1'],
+    ['GMT+2',                       'GMT offset +02:00',                'Etc/GMT-2'],
+    ['GMT+3',                       'GMT offset +03:00',                'Etc/GMT-3'],
+    ['GMT+4',                       'GMT offset +04:00',                'Etc/GMT-4'],
+    ['GMT+5',                       'GMT offset +05:00',                'Etc/GMT-5'],
+    ['GMT+5:30',                    'GMT offset +05:30 (India)',         'Asia/Kolkata'],
+    ['GMT+5:45',                    'GMT offset +05:45 (Nepal)',         'Asia/Kathmandu'],
+    ['GMT+6',                       'GMT offset +06:00',                'Etc/GMT-6'],
+    ['GMT+6:30',                    'GMT offset +06:30 (Myanmar)',       'Asia/Rangoon'],
+    ['GMT+7',                       'GMT offset +07:00',                'Etc/GMT-7'],
+    ['GMT+8',                       'GMT offset +08:00',                'Etc/GMT-8'],
+    ['GMT+9',                       'GMT offset +09:00',                'Etc/GMT-9'],
+    ['GMT+9:30',                    'GMT offset +09:30 (Adelaide/Darwin)','Australia/Darwin'],
+    ['GMT+10',                      'GMT offset +10:00',                'Etc/GMT-10'],
+    ['GMT+11',                      'GMT offset +11:00',                'Etc/GMT-11'],
+    ['GMT+12',                      'GMT offset +12:00',                'Etc/GMT-12'],
+    ['Honolulu',                    'Hawaii, United States',            'Pacific/Honolulu'],
+    ['Anchorage',                   'Alaska, United States',            'America/Anchorage'],
+    ['Los Angeles / Seattle',       'Pacific Time, United States',      'America/Los_Angeles'],
+    ['Vancouver',                   'British Columbia, Canada',         'America/Vancouver'],
+    ['Tijuana',                     'Baja California, Mexico',          'America/Tijuana'],
+    ['Denver / Salt Lake City',     'Mountain Time, United States',     'America/Denver'],
+    ['Phoenix',                     'Arizona, United States',           'America/Phoenix'],
+    ['Chicago / Dallas',            'Central Time, United States',      'America/Chicago'],
+    ['Mexico City',                 'Mexico',                           'America/Mexico_City'],
+    ['Winnipeg',                    'Manitoba, Canada',                 'America/Winnipeg'],
+    ['New York / Miami',            'Eastern Time, United States',      'America/New_York'],
+    ['Toronto',                     'Ontario, Canada',                  'America/Toronto'],
+    ['Bogotá / Lima',               'Colombia / Peru',                  'America/Bogota'],
+    ['Halifax',                     'Atlantic Time, Canada',            'America/Halifax'],
+    ['Caracas',                     'Venezuela',                        'America/Caracas'],
+    ['Santiago',                    'Chile',                            'America/Santiago'],
+    ['São Paulo / Rio de Janeiro',  'Brazil',                           'America/Sao_Paulo'],
+    ['Buenos Aires / Montevideo',   'Argentina / Uruguay',              'America/Argentina/Buenos_Aires'],
+    ['Azores',                      'Portugal',                         'Atlantic/Azores'],
+    ['Cape Verde',                  'Cape Verde',                       'Atlantic/Cape_Verde'],
+    ['London',                      'United Kingdom',                   'Europe/London'],
+    ['Lisbon',                      'Portugal',                         'Europe/Lisbon'],
+    ['Casablanca',                  'Morocco',                          'Africa/Casablanca'],
+    ['Paris / Lyon',                'France',                           'Europe/Paris'],
+    ['Berlin / Frankfurt',          'Germany',                          'Europe/Berlin'],
+    ['Amsterdam / Brussels',        'Netherlands / Belgium',            'Europe/Amsterdam'],
+    ['Rome / Milan',                'Italy',                            'Europe/Rome'],
+    ['Madrid / Barcelona',          'Spain',                            'Europe/Madrid'],
+    ['Zurich / Geneva',             'Switzerland',                      'Europe/Zurich'],
+    ['Vienna / Prague',             'Austria / Czechia',                'Europe/Vienna'],
+    ['Warsaw / Budapest',           'Poland / Hungary',                 'Europe/Warsaw'],
+    ['Lagos',                       'Nigeria / West Africa',            'Africa/Lagos'],
+    ['Cairo',                       'Egypt',                            'Africa/Cairo'],
+    ['Johannesburg',                'South Africa',                     'Africa/Johannesburg'],
+    ['Athens / Helsinki',           'Greece / Finland',                 'Europe/Athens'],
+    ['Bucharest',                   'Romania',                          'Europe/Bucharest'],
+    ['Istanbul',                    'Turkey',                           'Europe/Istanbul'],
+    ['Kyiv',                        'Ukraine',                          'Europe/Kyiv'],
+    ['Moscow / St. Petersburg',     'Russia',                           'Europe/Moscow'],
+    ['Nairobi',                     'Kenya / East Africa',              'Africa/Nairobi'],
+    ['Kuwait / Riyadh',             'Saudi Arabia / Kuwait',            'Asia/Riyadh'],
+    ['Baghdad',                     'Iraq',                             'Asia/Baghdad'],
+    ['Tehran',                      'Iran',                             'Asia/Tehran'],
+    ['Dubai / Abu Dhabi',           'UAE',                              'Asia/Dubai'],
+    ['Baku',                        'Azerbaijan',                       'Asia/Baku'],
+    ['Kabul',                       'Afghanistan',                      'Asia/Kabul'],
+    ['Karachi',                     'Pakistan',                         'Asia/Karachi'],
+    ['Tashkent',                    'Uzbekistan',                       'Asia/Tashkent'],
+    ['Mumbai / Delhi / Kolkata',    'India',                            'Asia/Kolkata'],
+    ['Colombo',                     'Sri Lanka',                        'Asia/Colombo'],
+    ['Kathmandu',                   'Nepal',                            'Asia/Kathmandu'],
+    ['Dhaka',                       'Bangladesh',                       'Asia/Dhaka'],
+    ['Almaty',                      'Kazakhstan',                       'Asia/Almaty'],
+    ['Yangon / Rangoon',            'Myanmar',                          'Asia/Rangoon'],
+    ['Bangkok / Jakarta',           'Thailand / Indonesia (West)',       'Asia/Bangkok'],
+    ['Ho Chi Minh City / Hanoi',    'Vietnam',                          'Asia/Ho_Chi_Minh'],
+    ['Singapore',                   'Singapore',                        'Asia/Singapore'],
+    ['Kuala Lumpur',                'Malaysia',                         'Asia/Kuala_Lumpur'],
+    ['Hong Kong',                   'Hong Kong',                        'Asia/Hong_Kong'],
+    ['Shanghai / Beijing',          'China',                            'Asia/Shanghai'],
+    ['Taipei',                      'Taiwan',                           'Asia/Taipei'],
+    ['Manila',                      'Philippines',                      'Asia/Manila'],
+    ['Perth',                       'Western Australia',                'Australia/Perth'],
+    ['Seoul',                       'South Korea',                      'Asia/Seoul'],
+    ['Tokyo / Osaka',               'Japan',                            'Asia/Tokyo'],
+    ['Darwin',                      'Northern Territory, Australia',    'Australia/Darwin'],
+    ['Adelaide',                    'South Australia',                  'Australia/Adelaide'],
+    ['Brisbane',                    'Queensland, Australia',            'Australia/Brisbane'],
+    ['Sydney / Melbourne',          'Eastern Australia',                'Australia/Sydney'],
+    ['Guam',                        'Guam / CNMI',                      'Pacific/Guam'],
+    ['Auckland',                    'New Zealand',                      'Pacific/Auckland'],
+    ['Fiji',                        'Fiji',                             'Pacific/Fiji'],
+    ['Tonga',                       'Tonga',                            'Pacific/Tongatapu'],
+];
+
+function getUTCOffset(iana) {
+    try {
+        const now = new Date();
+        const parts = new Intl.DateTimeFormat('en', {
+            timeZone: iana, timeZoneName: 'shortOffset'
+        }).formatToParts(now);
+        const p = parts.find(x => x.type === 'timeZoneName');
+        return p ? p.value : '';
+    } catch { return ''; }
+}
+
+// ══════════════════════════════════════════════════════════
+// UTC CONVERSION (DST-aware)
+// ══════════════════════════════════════════════════════════
+function localToUTC(dateStr, timeStr, iana) {
+    const [H, M] = timeStr.split(':').map(Number);
+    const [Y, Mo, D] = dateStr.split('-').map(Number);
+    if (iana === 'UTC') return new Date(Date.UTC(Y, Mo-1, D, H, M, 0));
+
+    const baseUTC = new Date(Date.UTC(Y, Mo-1, D, H, M, 0));
+    const fmt = new Intl.DateTimeFormat('en-US', {
+        timeZone: iana,
+        year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false
+    });
+    function utcToLocal(ms) {
+        const p = {};
+        fmt.formatToParts(new Date(ms)).forEach(({ type, value }) => p[type] = value);
+        let h = parseInt(p.hour, 10); if (h === 24) h = 0;
+        return Date.UTC(+p.year, +p.month-1, +p.day, h, +p.minute, +p.second);
+    }
+    const gotLocal = utcToLocal(baseUTC.getTime());
+    return new Date(baseUTC.getTime() + (baseUTC.getTime() - gotLocal));
+}
+
+// ══════════════════════════════════════════════════════════
+// URL PARSING — backward compatible (?iso= still works)
+// ══════════════════════════════════════════════════════════
+function parseISO(s) {
+    let c = s;
+    if (/^\d{8}T\d{6}$/.test(s)) {
+        c = `${s.substr(0,4)}-${s.substr(4,2)}-${s.substr(6,2)}T${s.substr(9,2)}:${s.substr(11,2)}:${s.substr(13,2)}Z`;
+    } else if (!/Z$/.test(c) && !/[+-]\d{2}:\d{2}$/.test(c)) {
+        c += 'Z';
+    }
+    return new Date(c);
+}
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let selectedIANA  = 'UTC';
+let selectedLabel = 'UTC / GMT';
+let timeFormat    = '24';
+let includeDate   = true;
+
+// ══════════════════════════════════════════════════════════
+// TIME INPUT
+// ══════════════════════════════════════════════════════════
+function buildHourOpts(fmt) {
+    if (fmt === '12') {
+        return Array.from({length:12}, (_,i) => {
+            const v = String(i+1).padStart(2,'0');
+            return `<option value="${v}">${v}</option>`;
+        }).join('');
+    }
+    return Array.from({length:24}, (_,i) => {
+        const v = String(i).padStart(2,'0');
+        return `<option value="${v}">${v}</option>`;
+    }).join('');
+}
+function buildMinOpts() {
+    return Array.from({length:60}, (_,i) => {
+        const v = String(i).padStart(2,'0');
+        return `<option value="${v}">${v}</option>`;
+    }).join('');
+}
+function renderTimeSelects() {
+    const wrap = document.getElementById('timeInputWrap');
+    if (!wrap) return;
+    if (timeFormat === '24') {
+        wrap.innerHTML = `
+            <div class="time-row">
+                <select id="selHour" class="sel-hour" aria-label="Hour">${buildHourOpts('24')}</select>
+                <span class="time-colon" aria-hidden="true">:</span>
+                <select id="selMin" class="sel-min" aria-label="Minute">${buildMinOpts()}</select>
+            </div>`;
+    } else {
+        wrap.innerHTML = `
+            <div class="time-row">
+                <select id="selHour" class="sel-hour" aria-label="Hour">${buildHourOpts('12')}</select>
+                <span class="time-colon" aria-hidden="true">:</span>
+                <select id="selMin" class="sel-min" aria-label="Minute">${buildMinOpts()}</select>
+                <select id="selAmPm" class="sel-ampm" aria-label="AM or PM">
+                    <option value="AM">AM</option><option value="PM">PM</option>
+                </select>
+            </div>`;
+    }
+}
+function getTime24() {
+    if (timeFormat === '24') {
+        return `${document.getElementById('selHour').value}:${document.getElementById('selMin').value}`;
+    }
+    let h = parseInt(document.getElementById('selHour').value, 10);
+    const m = document.getElementById('selMin').value;
+    const ap = document.getElementById('selAmPm').value;
+    if (ap === 'AM' && h === 12) h = 0;
+    if (ap === 'PM' && h !== 12) h += 12;
+    return `${String(h).padStart(2,'0')}:${m}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// TIMEZONE DROPDOWN
+// ══════════════════════════════════════════════════════════
+function buildTZList(query) {
+    const dd = document.getElementById('tzDropdown');
+    if (!dd) return;
+    const raw = (query || '').trim();
+    const q   = raw.toLowerCase();
+
+    const normQ = q.replace(/^(gmt|utc)?\s*([+-])/, 'gmt$2').replace(/\s/g, '');
+
+    const filtered = q
+        ? TZ_DATA.filter(([name, region, iana]) => {
+            const n = name.toLowerCase();
+            const r = region.toLowerCase();
+            const i = iana.toLowerCase();
+            if (n.includes(q) || r.includes(q) || i.includes(q.replace(/\s/g,'_'))) return true;
+            if (normQ.startsWith('gmt') && n.replace(/\s/g,'').toLowerCase().includes(normQ)) return true;
+            return false;
+        })
+        : TZ_DATA;
+
+    if (!filtered.length) {
+        dd.innerHTML = '<div class="tz-empty">No timezones found</div>';
+        return;
+    }
+    dd.innerHTML = filtered.map(([name, region, iana]) => {
+        const isSel   = iana === selectedIANA;
+        const offset  = getUTCOffset(iana);
+        const safeName = name.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+        return `<div class="tz-item${isSel?' selected':''}" tabindex="0"
+                     role="option" aria-selected="${isSel}"
+                     onclick="selectTZ('${iana}','${safeName}')"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectTZ('${iana}','${safeName}')}">
+            <div class="tz-item-left">
+                <span class="tz-item-name">${name}</span>
+                <span class="tz-item-region">${region}</span>
+            </div>
+            <span class="tz-item-offset">${offset}</span>
+        </div>`;
+    }).join('');
+}
+function openTZDropdown() {
+    const dd = document.getElementById('tzDropdown');
+    if (dd) { buildTZList(document.getElementById('tzInput').value); dd.classList.add('open'); }
+}
+function closeTZDropdown() {
+    const dd = document.getElementById('tzDropdown');
+    if (dd) dd.classList.remove('open');
+}
+function onTZInput() { buildTZList(document.getElementById('tzInput').value); openTZDropdown(); }
+function selectTZ(iana, name) {
+    selectedIANA  = iana;
+    selectedLabel = name;
+    const inp = document.getElementById('tzInput');
+    if (inp) inp.value = name;
+    closeTZDropdown();
+}
+document.addEventListener('click', e => { if (!e.target.closest('.tz-wrapper')) closeTZDropdown(); });
+
+// ══════════════════════════════════════════════════════════
+// TIMEZONE ABBREVIATION DATABASE (expanded)
+// ══════════════════════════════════════════════════════════
+const TZ_ABBR = {
+    // Universal
+    'UTC': 'UTC', 'GMT': 'UTC',
+    // North America
+    'EST': 'America/New_York',   'EDT': 'America/New_York',
+    'ET':  'America/New_York',
+    'CST': 'America/Chicago',    'CDT': 'America/Chicago',
+    'CT':  'America/Chicago',
+    'MST': 'America/Denver',     'MDT': 'America/Denver',
+    'MT':  'America/Denver',
+    'PST': 'America/Los_Angeles','PDT': 'America/Los_Angeles',
+    'PT':  'America/Los_Angeles',
+    'AKST':'America/Anchorage',  'AKDT':'America/Anchorage',
+    'HST': 'Pacific/Honolulu',   'HDT': 'Pacific/Honolulu',
+    'AST': 'America/Halifax',    'ADT': 'America/Halifax',
+    'NST': 'America/St_Johns',   'NDT': 'America/St_Johns',
+    'BRT': 'America/Sao_Paulo',  'BRST':'America/Sao_Paulo',
+    'ART': 'America/Argentina/Buenos_Aires',
+    'CLT': 'America/Santiago',   'CLST':'America/Santiago',
+    'VET': 'America/Caracas',
+    'COT': 'America/Bogota',
+    'PET': 'America/Lima',
+    // Europe
+    'WET': 'Europe/Lisbon',      'WEST':'Europe/Lisbon',
+    'BST': 'Europe/London',      'IST+IE': 'Europe/Dublin',
+    'CET': 'Europe/Paris',       'CEST': 'Europe/Paris',
+    'MET': 'Europe/Paris',       'MEST': 'Europe/Paris',
+    'EET': 'Europe/Athens',      'EEST': 'Europe/Athens',
+    'MSK': 'Europe/Moscow',      'MSD':  'Europe/Moscow',
+    'FET': 'Europe/Minsk',
+    'TRT': 'Europe/Istanbul',
+    'EAT': 'Africa/Nairobi',
+    'CAT': 'Africa/Johannesburg',
+    'WAT': 'Africa/Lagos',
+    'SAST':'Africa/Johannesburg',
+    // Middle East / Asia
+    'AST+AR': 'Asia/Riyadh',
+    'IRST': 'Asia/Tehran',       'IRDT': 'Asia/Tehran',
+    'GST': 'Asia/Dubai',
+    'PKT': 'Asia/Karachi',
+    'IST': 'Asia/Kolkata',
+    'NPT': 'Asia/Kathmandu',
+    'BST+BD':'Asia/Dhaka',       'BDT': 'Asia/Dhaka',
+    'ICT': 'Asia/Bangkok',
+    'WIB': 'Asia/Bangkok',
+    'SGT': 'Asia/Singapore',
+    'MYT': 'Asia/Kuala_Lumpur',
+    'HKT': 'Asia/Hong_Kong',
+    'CST+CN':'Asia/Shanghai',    'CCT': 'Asia/Shanghai',
+    'PHT': 'Asia/Manila',        'PST+PH':'Asia/Manila',
+    'KST': 'Asia/Seoul',         'KDT': 'Asia/Seoul',
+    'JST': 'Asia/Tokyo',
+    'WIT': 'Asia/Jayapura',
+    'WITA':'Asia/Makassar',
+    // Oceania / Pacific
+    'AEST':'Australia/Sydney',   'AEDT':'Australia/Sydney',
+    'ACST':'Australia/Darwin',   'ACDT':'Australia/Adelaide',
+    'AWST':'Australia/Perth',    'AWDT':'Australia/Perth',
+    'NZST':'Pacific/Auckland',   'NZDT':'Pacific/Auckland',
+    'NFT': 'Pacific/Norfolk',
+    'FJT': 'Pacific/Fiji',       'FJST':'Pacific/Fiji',
+    'TOT': 'Pacific/Tongatapu',
+    'SST': 'Pacific/Pago_Pago',
+    'WST': 'Pacific/Apia',
+    'CHST':'Pacific/Guam',
+    'LINT':'Pacific/Kiritimati',
+    // Central Asia
+    'ALMT':'Asia/Almaty',
+    'UZT': 'Asia/Tashkent',
+    'MMT': 'Asia/Rangoon',       'MST+MM':'Asia/Rangoon',
+    'KRAT':'Asia/Krasnoyarsk',
+    'YEKT':'Asia/Yekaterinburg',
+    'OMST':'Asia/Omsk',
+    // Atlantic
+    'AZOT':'Atlantic/Azores',    'AZOST':'Atlantic/Azores',
+    'CVT': 'Atlantic/Cape_Verde',
+};
+
+// ══════════════════════════════════════════════════════════
+// RELATIVE TIME PARSER
+// Resolves phrases like "tomorrow 8PM", "in 2 hours", "next Monday 9AM"
+// Returns { date: Date|null, hour: number|null, min: number|null, relativeNote: string|null }
+// ══════════════════════════════════════════════════════════
+function parseRelativeTime(raw) {
+    const s = raw.toLowerCase().trim();
+    const now = new Date();
+    let targetDate = null;
+    let deltaMinutes = null;
+    let relativeNote = null;
+
+    // ── "in X hours/minutes" or "X hours/minutes from now"
+    const inRe = /\bin\s+(\d+(?:\.\d+)?)\s+(hour|hr|minute|min)s?\b|(\d+(?:\.\d+)?)\s+(hour|hr|minute|min)s?\s+from\s+now/i;
+    const inM  = s.match(inRe);
+    if (inM) {
+        const qty  = parseFloat(inM[1] || inM[3]);
+        const unit = (inM[2] || inM[4] || '').toLowerCase();
+        deltaMinutes = unit.startsWith('h') ? qty * 60 : qty;
+        const target = new Date(now.getTime() + deltaMinutes * 60000);
+        return {
+            date: target,
+            hour: null,
+            min: null,
+            relativeNote: `in ${qty} ${unit}${qty !== 1 ? 's' : ''} from now`,
+            isDelta: true
+        };
+    }
+
+    // ── Number-word helpers for "two hours", "five minutes"
+    const NUM_WORDS = {
+        'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,
+        'seven':7,'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,
+        'thirteen':13,'fourteen':14,'fifteen':15,'twenty':20,'thirty':30,
+        'forty':40,'forty-five':45,'sixty':60,'ninety':90
+    };
+    const numWordRe = new RegExp(`\\b(${Object.keys(NUM_WORDS).join('|')})\\s+(hour|hr|minute|min)s?(?:\\s+from\\s+now)?\\b`, 'i');
+    const numWordM  = s.match(numWordRe);
+    if (numWordM) {
+        const qty  = NUM_WORDS[numWordM[1].toLowerCase()];
+        const unit = numWordM[2].toLowerCase();
+        deltaMinutes = unit.startsWith('h') ? qty * 60 : qty;
+        const target = new Date(now.getTime() + deltaMinutes * 60000);
+        return {
+            date: target,
+            hour: null,
+            min: null,
+            relativeNote: `in ${qty} ${unit}${qty !== 1 ? 's' : ''} from now`,
+            isDelta: true
+        };
+    }
+
+    // ── Day-relative keywords: today, tonight, tomorrow, yesterday, day after tomorrow
+    const DAY_WORDS = {
+        'today':       0,
+        'tonight':     0,
+        'tomorrow':    1,
+        'day after tomorrow': 2,
+        'the day after tomorrow': 2,
+        'yesterday':   -1,
+    };
+    for (const [word, delta] of Object.entries(DAY_WORDS)) {
+        if (s.includes(word)) {
+            targetDate = new Date(now);
+            targetDate.setDate(targetDate.getDate() + delta);
+            relativeNote = word;
+            break;
+        }
+    }
+
+    // ── "next/this/last [weekday]"
+    if (!targetDate) {
+        const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+        const dayRe = /\b(next|this|last)?\s*(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/i;
+        const dayM  = s.match(dayRe);
+        if (dayM) {
+            const qualifier = (dayM[1] || 'next').toLowerCase();
+            const wantedDay = DAYS.indexOf(dayM[2].toLowerCase());
+            const todayDay  = now.getDay();
+            let diff = wantedDay - todayDay;
+
+            if (qualifier === 'next') {
+                if (diff <= 0) diff += 7;
+            } else if (qualifier === 'this') {
+                if (diff < 0) diff += 7;
+            } else if (qualifier === 'last') {
+                if (diff >= 0) diff -= 7;
+            }
+
+            targetDate = new Date(now);
+            targetDate.setDate(targetDate.getDate() + diff);
+            relativeNote = `${qualifier || 'next'} ${dayM[2].toLowerCase()}`;
+        }
+    }
+
+    // ── "in X days" / "X days from now" — digits or number-words
+    if (!targetDate) {
+        const NUM_WORDS_DAYS = {
+            'a': 1, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+            'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+            'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14,
+            'fifteen': 15, 'twenty': 20, 'thirty': 30,
+        };
+        const numWordList = Object.keys(NUM_WORDS_DAYS).join('|');
+        const daysRe = new RegExp(
+            `\\bin\\s+(\\d+|${numWordList})\\s+days?\\b|(\\d+|${numWordList})\\s+days?\\s+from\\s+now`, 'i'
+        );
+        const daysM = s.match(daysRe);
+        if (daysM) {
+            const raw = (daysM[1] || daysM[2]).toLowerCase();
+            const n   = NUM_WORDS_DAYS[raw] !== undefined ? NUM_WORDS_DAYS[raw] : parseInt(raw, 10);
+            targetDate = new Date(now);
+            targetDate.setDate(targetDate.getDate() + n);
+            relativeNote = `in ${n} day${n !== 1 ? 's' : ''}`;
+        }
+    }
+
+    return { date: targetDate, relativeNote, isDelta: false };
+}
+
+// ══════════════════════════════════════════════════════════
+// QUICK PARSE
+// ══════════════════════════════════════════════════════════
+
+const MONTHS = {
+    jan:1, january:1, feb:2, february:2, mar:3, march:3,
+    apr:4, april:4, may:5, jun:6, june:6,
+    jul:7, july:7, aug:8, august:8, sep:9, sept:9, september:9,
+    oct:10, october:10, nov:11, november:11, dec:12, december:12
+};
+
+function dateFmtForIANA(iana) {
+    if (!iana) return null;
+    if (iana.startsWith('America/')) {
+        const canadian = ['America/Toronto','America/Vancouver','America/Winnipeg',
+                          'America/Halifax','America/St_Johns','America/Regina'];
+        return canadian.includes(iana) ? 'DMY' : 'MDY';
+    }
+    if (iana.startsWith('Asia/Tokyo') || iana.startsWith('Asia/Seoul') ||
+        iana.startsWith('Asia/Shanghai') || iana.startsWith('Asia/Taipei') ||
+        iana.startsWith('Asia/Hong_Kong')) return 'YMD';
+    return 'DMY';
+}
+
+function expandYear(yy) {
+    const n = +yy;
+    return n < 50 ? 2000 + n : 1900 + n;
+}
+
+function validDate(y, m, d) {
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    const maxDay = new Date(y, m, 0).getDate();
+    return d <= maxDay;
+}
+
+// ══════════════════════════════════════════════════════════
+// CITY NAME MATCHER
+// Scans a free-text string against TZ_DATA display names and
+// regions. Returns { iana, label } for the best match, or null.
+// Strategy: for each TZ_DATA entry build a set of normalised
+// searchable tokens (words from name + region), then score by
+// how many consecutive words in the candidate appear in order
+// inside the haystack. Longest match wins.
+// ══════════════════════════════════════════════════════════
+function matchCityName(rawTail) {
+    if (!rawTail || rawTail.trim().length < 2) return null;
+
+    // Normalise: lowercase, strip punctuation except hyphens inside words
+    const normalise = s => s.toLowerCase()
+        .replace(/['']/g, '')          // smart quotes
+        .replace(/[^a-z0-9\- ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const hay = normalise(rawTail);
+
+    let best = null;
+    let bestLen = 0;
+
+    for (const [name, region, iana] of TZ_DATA) {
+        // Build candidate strings to try: the display name itself,
+        // the region, and individual "/" parts of the display name
+        const candidates = [
+            name,
+            region,
+            ...name.split('/').map(s => s.trim()),
+            ...name.split(' / ').map(s => s.trim()),
+        ];
+
+        for (const cand of candidates) {
+            const norm = normalise(cand);
+            if (norm.length < 3) continue;  // skip trivially short tokens
+
+            // Check if the normalised candidate appears as a substring
+            // of the haystack (word-boundary aware via space padding)
+            const paddedHay  = ' ' + hay + ' ';
+            const paddedCand = ' ' + norm + ' ';
+
+            if (paddedHay.includes(paddedCand) && norm.length > bestLen) {
+                bestLen = norm.length;
+                best = { iana, label: name };
+            }
+        }
+    }
+
+    return best;
+}
+
+function parseQuick() {
+    const raw = (document.getElementById('quickInput').value || '').trim();
+    const fb  = document.getElementById('parseFeedback');
+    if (!raw) { fb.className = 'parse-feedback error'; fb.textContent = 'Please enter a time string.'; return; }
+
+    // ── First: check for relative time (delta-based like "in 2 hours")
+    const relResult = parseRelativeTime(raw);
+
+    if (relResult.isDelta && relResult.date) {
+        // Pure relative offset — fill in the resolved date & time
+        const d = relResult.date;
+        const h = d.getHours();
+        const m = d.getMinutes();
+
+        setFmt('24');
+        document.getElementById('selHour').value = String(h).padStart(2,'0');
+        document.getElementById('selMin').value  = String(m).padStart(2,'0');
+
+        const sw = document.getElementById('dateSwitch');
+        if (sw && !sw.checked) { sw.checked = true; onDateSwitch(); }
+        const di = document.getElementById('dateInput');
+        if (di) {
+            const yr  = d.getFullYear();
+            const mo  = String(d.getMonth()+1).padStart(2,'0');
+            const dy  = String(d.getDate()).padStart(2,'0');
+            di.value  = `${yr}-${mo}-${dy}`;
+        }
+
+        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const row    = TZ_DATA.find(([,,i]) => i === userTZ);
+        const tzLabel = row ? row[0] : userTZ.replace(/_/g,' ');
+        selectTZ(userTZ, tzLabel);
+
+        fb.className = 'parse-feedback success';
+        fb.innerHTML = `✓ Resolved "${relResult.relativeNote}" → ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} on ${d.toDateString()} &nbsp;·&nbsp; <strong>Now click "Generate shareable link" ↓</strong>`;
+        return;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 1: Pre-scan for timezone abbreviation/offset
+    // ══════════════════════════════════════════════════════════════════════════
+    let preScanIANA = null;
+    const preTZ = raw.match(/\b([A-Z]{2,6}(?:[+-]\d{1,2}(?::\d{2})?)?)\s*$/i);
+    if (preTZ) {
+        const tok = preTZ[1].toUpperCase();
+        if (TZ_ABBR[tok]) preScanIANA = TZ_ABBR[tok];
+        else if (/^(GMT|UTC)[+-]/.test(tok)) {
+            const om = tok.match(/^(?:GMT|UTC)([+-])(\d{1,2})(?::(\d{2}))?$/);
+            if (om) {
+                const etcSign = om[1] === '+' ? '-' : '+';
+                preScanIANA = om[3] && om[3] !== '00'
+                    ? (TZ_DATA.find(([n]) => n.toUpperCase() === `GMT${om[1]}${om[2]}:${om[3]}`) || [null,null,null])[2]
+                    : `Etc/GMT${etcSign}${parseInt(om[2],10)}`;
+            }
+        }
+    }
+    // City name pre-scan: try matching the whole raw string against TZ_DATA
+    // so the date convention hint is available even for multi-word city names
+    if (!preScanIANA) {
+        const cityMatch = matchCityName(raw);
+        if (cityMatch) preScanIANA = cityMatch.iana;
+    }
+    const dateFmt = dateFmtForIANA(preScanIANA);
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 2: Handle relative day reference (tomorrow, next Monday, etc.)
+    // alongside a time (e.g. "tomorrow 8PM KST")
+    // ══════════════════════════════════════════════════════════════════════════
+    let relativeDate    = null;
+    let relativeDateStr = null;
+
+    if (relResult.date && !relResult.isDelta) {
+        relativeDate = relResult.date;
+        const yr = relativeDate.getFullYear();
+        const mo = String(relativeDate.getMonth()+1).padStart(2,'0');
+        const dy = String(relativeDate.getDate()).padStart(2,'0');
+        relativeDateStr = `${yr}-${mo}-${dy}`;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 3: Strip ordinals, normalise spaces, strip relative day words
+    // ══════════════════════════════════════════════════════════════════════════
+    let noOrdinal = raw.replace(/(\d+)(st|nd|rd|th)\b/gi, '$1').replace(/\s+/g,' ');
+
+    // Strip relative day phrases so they don't confuse the numeric date parser
+    const REL_DAY_PATTERNS = [
+        /\b(day after tomorrow|the day after tomorrow)\b/i,
+        /\b(next|this|last)\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/i,
+        /\b(tomorrow|today|tonight|yesterday)\b/i,
+        /\bin\s+(?:\d+|a|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|twenty|thirty)\s+days?\b/i,
+        /\b(?:\d+|a|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|twenty|thirty)\s+days?\s+from\s+now\b/i,
+        // Bare weekday names (e.g. "Tuesday" in "Tuesday, 10 March 2026, 8PM")
+        /\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/i,
+    ];
+    let strippedForDate = noOrdinal;
+    for (const pat of REL_DAY_PATTERNS) strippedForDate = strippedForDate.replace(pat, ' ');
+    strippedForDate = strippedForDate.replace(/\s+/g,' ').trim();
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 4: Date extraction from non-relative part
+    // ══════════════════════════════════════════════════════════════════════════
+    let parsedYear  = null;
+    let parsedMonth = null;
+    let parsedDay   = null;
+    let dateMatchStr = '';
+
+    function tryDate(y, mo, d, matchStr) {
+        if (!validDate(y, mo, d)) return false;
+        parsedYear = y; parsedMonth = mo; parsedDay = d;
+        dateMatchStr = matchStr;
+        return true;
+    }
+
+    // Always try absolute date parsing first (3a/3b/3c).
+    // relativeDate (weekday/tomorrow etc.) is used only as a fallback below,
+    // so an explicit date like "Tuesday, 10 March 2026" uses March 10, not "next Tuesday".
+
+    // 3a: ISO YYYY-MM-DD
+    const isoM = strippedForDate.match(/\b(\d{4})([-\/\. ])(\d{1,2})\2(\d{1,2})\b/);
+    if (isoM && !tryDate(+isoM[1], +isoM[3], +isoM[4], isoM[0])) {/* skip */}
+
+    // 3b: Month-name "Feb 15 2026"
+    if (!parsedYear) {
+        const mnM = strippedForDate.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:[,\s]+(\d{2,4})(?!:\d))?\b/i);
+        if (mnM) {
+            const mo = MONTHS[mnM[1].toLowerCase().replace(/\.$/,'')];
+            const yr = mnM[3] ? (mnM[3].length === 2 ? expandYear(mnM[3]) : +mnM[3]) : new Date().getFullYear();
+            tryDate(yr, mo, +mnM[2], mnM[0]);
+        }
+    }
+    if (!parsedYear) {
+        const dmM = strippedForDate.match(/\b(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?(?:[,\s]+(\d{2,4})(?!:\d))?\b/i);
+        if (dmM) {
+            const mo = MONTHS[dmM[2].toLowerCase().replace(/\.$/,'')];
+            const yr = dmM[3] ? (dmM[3].length === 2 ? expandYear(dmM[3]) : +dmM[3]) : new Date().getFullYear();
+            tryDate(yr, mo, +dmM[1], dmM[0]);
+        }
+    }
+    // 3c-pre: Two-part dates with NO year: MM/DD, DD/MM, M/D etc.
+    // Must be handled before the 3-part match so the "/" isn't stolen by the time regex.
+    if (!parsedYear) {
+        const twoM = strippedForDate.match(/\b(\d{1,2})([-\/\.])(\d{1,2})\b(?!\s*[-\/\.]\s*\d)/);
+        if (twoM) {
+            const a = +twoM[1], b = +twoM[3];
+            const yr = new Date().getFullYear();
+            let mo, dy;
+            if (dateFmt === 'MDY') {
+                if (a > 12) { mo = b; dy = a; } else { mo = a; dy = b; }
+            } else {
+                if (b > 12) { mo = a; dy = b; } else { mo = b; dy = a; }
+            }
+            tryDate(yr, mo, dy, twoM[0]);
+        }
+    }
+
+    // 3c: Numeric dates (with year)
+    if (!parsedYear) {
+        const numM = strippedForDate.match(/\b(\d{1,4})([-\/\. ])(\d{1,2})\2(\d{2,4})\b/);
+        if (numM) {
+            const a = +numM[1], b = +numM[3], c = +numM[4];
+            if (numM[1].length === 4) {
+                tryDate(a, b, c, numM[0]);
+            } else if (numM[4].length === 4) {
+                const yr = c;
+                if (dateFmt === 'MDY') {
+                    if (a > 12) tryDate(yr, b, a, numM[0]);
+                    else tryDate(yr, a, b, numM[0]);
+                } else {
+                    tryDate(yr, b, a, numM[0]);
+                }
+            } else {
+                const yr = expandYear(c);
+                if (dateFmt === 'MDY') {
+                    if (a > 12) tryDate(yr, b, a, numM[0]);
+                    else tryDate(yr, a, b, numM[0]);
+                } else if (dateFmt === 'YMD') {
+                    tryDate(expandYear(a), b, c, numM[0]);
+                } else {
+                    tryDate(yr, b, a, numM[0]);
+                }
+            }
+        }
+    }
+
+    // 3d: Fallback — use relative day (tomorrow / next Monday / in 3 days) only when
+    // no absolute date was found above. This prevents "Tuesday, 10 March 2026" from
+    // being parsed as "next Tuesday" instead of March 10.
+    if (!parsedYear && relativeDate) {
+        parsedYear  = relativeDate.getFullYear();
+        parsedMonth = relativeDate.getMonth() + 1;
+        parsedDay   = relativeDate.getDate();
+        dateMatchStr = relResult.relativeNote || '';
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 5: Extract time
+    // ══════════════════════════════════════════════════════════════════════════
+    // Use the original noOrdinal but strip the date match string we found
+    let timeInput = noOrdinal.replace(dateMatchStr, '').replace(/\s+/g,' ').trim();
+    // Also strip relative day phrases from time input
+    for (const pat of REL_DAY_PATTERNS) timeInput = timeInput.replace(pat, ' ');
+    timeInput = timeInput.replace(/\s+/g,' ').trim();
+    timeInput = timeInput.replace(/(\d)\.(\d{2})(?=\s|am|pm|[a-zA-Z]|$)/gi, '$1:$2');
+
+    const TIME_RE = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*([a-zA-Z][a-zA-Z_\/]*(?:[+-]\d{1,2}(?::\d{2})?)?)?/i;
+    const tm = timeInput.match(TIME_RE);
+
+    // If no time found but we have a relative day reference, default to current time
+    let hour, min, tzRaw;
+    if (!tm) {
+        if (relResult.date && !relResult.isDelta) {
+            // e.g. "tomorrow", "two days from now", "next Monday" with no time given
+            // → use the current local time as the anchor
+            const now2 = new Date();
+            hour   = now2.getHours();
+            min    = now2.getMinutes();
+            tzRaw  = '';
+        } else {
+            fb.className = 'parse-feedback error';
+            fb.textContent = `Couldn't find a time in "${raw}" — try e.g. tomorrow 5:30 PM NZDT`;
+            return;
+        }
+    } else {
+        hour  = parseInt(tm[1], 10);
+        min   = parseInt(tm[2] || '0', 10);
+        tzRaw = (tm[4] || '').trim().toUpperCase();
+        const ampm = (tm[3] || '').toLowerCase();
+        if (ampm === 'am' && hour === 12) hour = 0;
+        if (ampm === 'pm' && hour !== 12) hour += 12;
+    }
+
+    if (hour > 23 || min > 59) {
+        fb.className = 'parse-feedback error';
+        fb.textContent = 'Invalid time — hour must be 0–23, minutes 0–59.';
+        return;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 6: Resolve timezone
+    // ══════════════════════════════════════════════════════════════════════════
+    let resolvedIANA  = preScanIANA;
+    let resolvedLabel = null;
+
+    if (tzRaw && !resolvedIANA) {
+        if (TZ_ABBR[tzRaw]) {
+            resolvedIANA = TZ_ABBR[tzRaw];
+        } else if (/^(GMT|UTC)[+-]\d{1,2}(:\d{2})?$/.test(tzRaw)) {
+            const om2 = tzRaw.match(/^(?:GMT|UTC)([+-])(\d{1,2})(?::(\d{2}))?$/);
+            if (om2) {
+                const sign = om2[1], oh = om2[2], omm = om2[3] || '00';
+                const etcSign = sign === '+' ? '-' : '+';
+                if (omm === '00') {
+                    resolvedIANA = `Etc/GMT${etcSign}${parseInt(oh,10)}`;
+                } else {
+                    const gmtLabel = `GMT${sign}${oh}:${omm}`;
+                    const row = TZ_DATA.find(([n]) => n.toUpperCase() === gmtLabel);
+                    if (row) resolvedIANA = row[2];
+                }
+            }
+        } else {
+            // Try raw value as a valid IANA key
+            try {
+                new Intl.DateTimeFormat('en', { timeZone: tzRaw.replace(/ /g,'_') });
+                resolvedIANA = tzRaw.replace(/ /g,'_');
+            } catch {}
+        }
+
+        // Fallback: city name search against the full input tail
+        // (catches multi-word names like "new york", "los angeles", "hong kong")
+        if (!resolvedIANA) {
+            // Build the tail: everything after the time match in the stripped input
+            const timePosInInput = timeInput.search(/\d{1,2}(?::\d{2})?\s*(?:am|pm)?/i);
+            const tail = timePosInInput >= 0
+                ? timeInput.slice(timePosInInput).replace(/^\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s*/i, '')
+                : timeInput;
+            const cityMatch = matchCityName(tail) || matchCityName(raw);
+            if (cityMatch) {
+                resolvedIANA  = cityMatch.iana;
+                resolvedLabel = cityMatch.label;
+            }
+        }
+
+        if (!resolvedIANA) {
+            fb.className = 'parse-feedback error';
+            fb.textContent = `Recognised the time but couldn't identify timezone "${tzRaw}". Try an abbreviation like PST, or GMT+8.`;
+            return;
+        }
+    }
+
+    // Also try city matching when no tz token was captured at all but preScanIANA
+    // gave us something via the pre-scan city pass
+    if (!resolvedIANA && preScanIANA) resolvedIANA = preScanIANA;
+
+    // Final fallback: if still no timezone found, use the visitor's local timezone
+    if (!resolvedIANA) {
+        resolvedIANA = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+
+    if (resolvedIANA) {
+        const row = TZ_DATA.find(([,,i]) => i === resolvedIANA);
+        resolvedLabel = row ? row[0] : resolvedIANA.replace(/_/g,' ');
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // STEP 7: Fill the form
+    // ══════════════════════════════════════════════════════════════════════════
+    setFmt('24');
+    const hourSel = document.getElementById('selHour');
+    const minSel  = document.getElementById('selMin');
+    if (hourSel) hourSel.value = String(hour).padStart(2,'0');
+    if (minSel)  minSel.value  = String(min).padStart(2,'0');
+
+    if (resolvedIANA) {
+        selectedIANA  = resolvedIANA;
+        selectedLabel = resolvedLabel;
+        const inp = document.getElementById('tzInput');
+        if (inp) inp.value = resolvedLabel;
+    }
+
+    if (parsedYear && parsedMonth && parsedDay) {
+        const sw = document.getElementById('dateSwitch');
+        if (sw && !sw.checked) { sw.checked = true; onDateSwitch(); }
+        const dateInput = document.getElementById('dateInput');
+        if (dateInput) {
+            const mo = String(parsedMonth).padStart(2,'0');
+            const dy = String(parsedDay).padStart(2,'0');
+            dateInput.value = `${parsedYear}-${mo}-${dy}`;
+        }
+    } else {
+        const sw = document.getElementById('dateSwitch');
+        if (sw && sw.checked) { sw.checked = false; onDateSwitch(); }
+    }
+
+    // ── Feedback
+    const displayH = String(hour).padStart(2,'0');
+    const displayM = String(min).padStart(2,'0');
+    const dateNote = parsedDay
+        ? ` · ${parsedYear}-${String(parsedMonth).padStart(2,'0')}-${String(parsedDay).padStart(2,'0')}`
+        : '';
+    const tzNote   = resolvedLabel ? ` · ${resolvedLabel}` : '';
+    const relNote  = relResult.relativeNote ? ` (${relResult.relativeNote})` : '';
+    const timeDefaulted = !tm && relResult.date && !relResult.isDelta;
+    const timeNote = timeDefaulted ? ' — no time given, defaulted to current time' : '';
+    const fmtNote  = (!timeDefaulted && dateFmt && dateMatchStr && /^\d/.test(dateMatchStr) && !dateMatchStr.includes(' '))
+        ? ` (read as ${dateFmt === 'MDY' ? 'MM/DD' : dateFmt === 'YMD' ? 'YYYY/MM/DD' : 'DD/MM'})`
+        : '';
+    fb.className = 'parse-feedback success';
+    fb.innerHTML = `✓ Filled in ${displayH}:${displayM}${dateNote}${relNote}${tzNote}${fmtNote}${timeNote} &nbsp;·&nbsp; <strong>Now click "Generate shareable link" ↓</strong>`;
+
+}
+
+// ══════════════════════════════════════════════════════════
+// SHOW FORM
+// ══════════════════════════════════════════════════════════
+function showForm() {
+    const today = new Date().toISOString().substr(0, 10);
+    document.getElementById('content').innerHTML = `
+        <div class="quick-parse-wrap">
+            <label class="form-label" for="quickInput">Quick paste</label>
+            <div class="quick-parse-input-row">
+                <input type="text" id="quickInput"
+                       placeholder="e.g. tomorrow 8PM NZDT · next Mon 9AM KST · in 2 hours · Feb 15 5pm PST"
+                       aria-label="Paste a time string to auto-fill the form"
+                       onkeydown="if(event.key==='Enter')parseQuick()">
+                <button class="btn-parse" onclick="parseQuick()">Fill form</button>
+            </div>
+            <div class="parse-feedback" id="parseFeedback"></div>
+        </div>
+
+        <div class="parse-or">
+            <span class="parse-or-line"></span>
+            <span class="parse-or-label">or fill in manually</span>
+            <span class="parse-or-line"></span>
+        </div>
+
+        <div class="form-group">
+            <div class="label-control-row">
+                <span class="form-label">Time</span>
+                <div class="pill-group" role="group" aria-label="Time format">
+                    <button id="btn12" onclick="setFmt('12')" aria-pressed="false">12h</button>
+                    <button id="btn24" onclick="setFmt('24')" aria-pressed="true" class="active">24h</button>
+                </div>
+            </div>
+            <div id="timeInputWrap"></div>
+        </div>
+
+        <div class="switch-row">
+            <label class="switch">
+                <input type="checkbox" id="dateSwitch" checked onchange="onDateSwitch()">
+                <span class="switch-track"></span>
+            </label>
+            <span class="switch-label" onclick="document.getElementById('dateSwitch').click()">Include specific date (uses today if off)</span>
+        </div>
+
+        <div class="form-group" id="dateGroup">
+            <label class="form-label" for="dateInput">Date</label>
+            <input type="date" id="dateInput" value="${today}" aria-label="Event date">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="tzInput">City / Timezone</label>
+            <div class="tz-wrapper">
+                <div class="tz-input-wrap">
+                    <span class="tz-icon" aria-hidden="true">🌍</span>
+                    <input type="text" id="tzInput" class="tz-input"
+                           value="UTC / GMT"
+                           placeholder="Search city, country, or GMT offset…"
+                           aria-label="Search city or timezone"
+                           aria-autocomplete="list"
+                           aria-controls="tzDropdown"
+                           autocomplete="off"
+                           oninput="onTZInput()"
+                           onfocus="openTZDropdown()">
+                </div>
+                <div class="tz-dropdown" id="tzDropdown" role="listbox" aria-label="Timezone options"></div>
+            </div>
+            <p class="tz-hint">Try: <em>New York</em>, <em>NZDT</em>, <em>JST</em>, <em>India</em>, <em>GMT+8</em></p>
+        </div>
+
+        <button class="btn-primary" onclick="generateURL()">Generate shareable link</button>
+
+        <div class="result-box" id="resultBox">
+            <div class="share-url-box" id="shareUrlText"></div>
+            <div class="result-actions">
+                <button class="btn-success" onclick="copyURL()" id="copyBtn">Copy link</button>
+                <a id="calBtn" href="#" target="_blank" class="btn-outline">Add to Google Calendar</a>
+            </div>
+
+            <div class="preview-separator">
+                <span class="preview-separator-line"></span>
+                <span class="preview-separator-label">👁 Preview — what recipients see</span>
+                <span class="preview-separator-line"></span>
+            </div>
+
+            <div class="preview-wrapper">
+                <div class="preview-header">
+                    <div class="preview-header-dot"></div>
+                    <div class="preview-header-dot"></div>
+                    <div class="preview-header-dot"></div>
+                    <span class="preview-header-label">timezone-converter.html</span>
+                </div>
+                <div class="preview-body" id="previewBody">
+                    <!-- Filled in by generateURL() -->
+                </div>
+            </div>
+            <p class="preview-note">Shown in your local timezone. Recipients in other zones will see different times.</p>
+        </div>`;
+
+    renderTimeSelects();
+    buildTZList('');
+}
+
+function setFmt(f) {
+    timeFormat = f;
+    document.getElementById('btn12').className  = f === '12' ? 'active' : '';
+    document.getElementById('btn12').setAttribute('aria-pressed', String(f === '12'));
+    document.getElementById('btn24').className  = f === '24' ? 'active' : '';
+    document.getElementById('btn24').setAttribute('aria-pressed', String(f === '24'));
+    renderTimeSelects();
+}
+function onDateSwitch() {
+    includeDate = document.getElementById('dateSwitch').checked;
+    document.getElementById('dateGroup').style.display = includeDate ? '' : 'none';
+}
+
+// ══════════════════════════════════════════════════════════
+// GENERATE URL + PREVIEW
+// ══════════════════════════════════════════════════════════
+function generateURL() {
+    // Clear any parse feedback guidance once the user clicks generate
+    const fb = document.getElementById('parseFeedback');
+    if (fb && fb.classList.contains('parse-feedback')) {
+        fb.className = 'parse-feedback';
+        fb.innerHTML = '';
+    }
+    const timeStr = getTime24();
+
+    // Always generate ?iso= (UTC) links — avoids exposing raw IANA keys whose
+    // Etc/GMT signs are POSIX-inverted (Etc/GMT-7 = UTC+7), which is confusing.
+    // When no specific date is toggled on, fall back to today in the source timezone.
+    const dateStr = includeDate
+        ? document.getElementById('dateInput').value
+        : new Date().toLocaleDateString('en-CA', { timeZone: selectedIANA }); // en-CA => YYYY-MM-DD
+
+    if (!dateStr) { alert('Please enter a date.'); return; }
+
+    const dateObj = localToUTC(dateStr, timeStr, selectedIANA);
+    const Y  = dateObj.getUTCFullYear();
+    const Mo = String(dateObj.getUTCMonth()+1).padStart(2,'0');
+    const D  = String(dateObj.getUTCDate()).padStart(2,'0');
+    const H  = String(dateObj.getUTCHours()).padStart(2,'0');
+    const Mi = String(dateObj.getUTCMinutes()).padStart(2,'0');
+    const S  = String(dateObj.getUTCSeconds()).padStart(2,'0');
+    const url = `${location.origin}${location.pathname}?iso=${Y}${Mo}${D}T${H}${Mi}${S}`;
+
+    document.getElementById('shareUrlText').textContent = url;
+    document.getElementById('resultBox').style.display = 'block';
+    document.getElementById('calBtn').href = calendarLink(dateObj);
+    document.getElementById('calBtn').style.removeProperty('display');
+    renderPreviewDateTime(dateObj);
+
+    document.getElementById('resultBox').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// Render the preview for a date+time link (mirrors displayDateTime layout)
+function renderPreviewDateTime(date) {
+    const pb = document.getElementById('previewBody');
+    if (!pb) return;
+    const userTZ    = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localTime = date.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+    const localDate = date.toLocaleDateString('en-US',  { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    const utcTime   = date.toLocaleTimeString('en-US',  { timeZone:'UTC', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+    const utcDate   = date.toLocaleDateString('en-US',  { timeZone:'UTC', weekday:'short', year:'numeric', month:'short', day:'numeric' });
+    const isFuture  = date > new Date();
+
+    pb.innerHTML = `
+        <div class="display-card" style="margin-bottom:${isFuture?'12px':'0'};">
+            <div class="display-label">Scheduled for</div>
+            <div class="display-utc-time">${utcTime} UTC</div>
+            <div class="display-utc-date">${utcDate}</div>
+            <div class="conversion-arrow">
+                <span class="arrow-line"></span>
+                <span class="arrow-label">in your timezone</span>
+                <span class="arrow-line"></span>
+            </div>
+            <div class="display-label">That's</div>
+            <div class="display-time-main">${localTime}</div>
+            <div class="display-date-tz">${localDate} · ${userTZ}</div>
+        </div>
+        ${isFuture ? `<div class="countdown-box" style="margin-bottom:0;padding:12px 16px;">
+            <div class="countdown-label">Time until event</div>
+            <div class="countdown-time" id="previewCountdown">${countdown(date)}</div>
+        </div>` : ''}`;
+
+    if (isFuture) {
+        const iv = setInterval(() => {
+            const el = document.getElementById('previewCountdown');
+            if (!el) { clearInterval(iv); return; }
+            el.textContent = countdown(date);
+        }, 1000);
+    }
+}
+
+// Render the preview for a time-only link
+function renderPreviewTimeOnly(timeStr, iana) {
+    const pb = document.getElementById('previewBody');
+    if (!pb) return;
+    const today = new Date().toISOString().substr(0,10);
+    try {
+        const utcDate   = localToUTC(today, timeStr, iana);
+        const userTZ    = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const localTime = utcDate.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
+        const utcTime   = utcDate.toLocaleTimeString('en-US', { timeZone:'UTC', hour:'2-digit', minute:'2-digit', hour12:true });
+        const [hh, mm]  = timeStr.split(':').map(Number);
+        const srcStr    = `${String(hh%12||12).padStart(2,'0')}:${String(mm).padStart(2,'0')} ${hh>=12?'PM':'AM'}`;
+        const row       = TZ_DATA.find(([,,i]) => i === iana);
+        const srcLabel  = row ? row[0] : iana.replace(/_/g,' ');
+        pb.innerHTML = `
+            <div class="display-card" style="margin-bottom:0;">
+                <div class="display-label">Source time</div>
+                <div class="display-time-main">${srcStr}</div>
+                <div class="display-date-tz">${srcLabel}</div>
+                <hr class="display-sep">
+                <div class="display-row" style="margin-bottom:10px;">
+                    <span class="display-label">UTC</span>
+                    <span class="display-row-val">${utcTime}</span>
+                </div>
+                <div class="display-row">
+                    <span class="display-label">Your time</span>
+                    <span class="display-row-val">${localTime} · ${userTZ}</span>
+                </div>
+            </div>`;
+    } catch { pb.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:16px;">Preview unavailable</p>'; }
+}
+
+function copyURL() {
+    const url = document.getElementById('shareUrlText').textContent;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 2000);
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// GOOGLE CALENDAR LINK
+// ══════════════════════════════════════════════════════════
+function calendarLink(date) {
+    function fmt(d) {
+        return d.getUTCFullYear() +
+               String(d.getUTCMonth()+1).padStart(2,'0') +
+               String(d.getUTCDate()).padStart(2,'0') + 'T' +
+               String(d.getUTCHours()).padStart(2,'0') +
+               String(d.getUTCMinutes()).padStart(2,'0') +
+               String(d.getUTCSeconds()).padStart(2,'0') + 'Z';
+    }
+    const end = new Date(date.getTime() + 3600000);
+    const cal = new URL('https://calendar.google.com/calendar/render');
+    cal.searchParams.set('action','TEMPLATE');
+    cal.searchParams.set('text','Meeting');
+    cal.searchParams.set('dates',`${fmt(date)}/${fmt(end)}`);
+    cal.searchParams.set('ctz', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    return cal.toString();
+}
+
+// ══════════════════════════════════════════════════════════
+// DISPLAY — date+time (?iso=…)
+// ══════════════════════════════════════════════════════════
+function displayDateTime(date) {
+    const userTZ    = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localTime = date.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+    const localDate = date.toLocaleDateString('en-US',  { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    const utcTime   = date.toLocaleTimeString('en-US',  { timeZone:'UTC', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+    const utcDate   = date.toLocaleDateString('en-US',  { timeZone:'UTC', weekday:'short', year:'numeric', month:'short', day:'numeric' });
+    const isFuture  = date > new Date();
+
+    document.getElementById('content').innerHTML = `
+        <div class="display-card">
+            <div class="display-label">Scheduled for</div>
+            <div class="display-utc-time">${utcTime} UTC</div>
+            <div class="display-utc-date">${utcDate}</div>
+
+            <div class="conversion-arrow">
+                <span class="arrow-line"></span>
+                <span class="arrow-label">in your timezone</span>
+                <span class="arrow-line"></span>
+            </div>
+
+            <div class="display-label">That's</div>
+            <div class="display-time-main">${localTime}</div>
+            <div class="display-date-tz">${localDate} &middot; ${userTZ}</div>
+        </div>
+
+        ${isFuture ? `
+        <div class="countdown-box" aria-live="polite">
+            <div class="countdown-label">Time until event</div>
+            <div class="countdown-time" id="countdown">${countdown(date)}</div>
+        </div>` : ''}
+
+        <div class="display-actions">
+            <a href="${calendarLink(date)}" target="_blank" class="btn-outline">Add to Google Calendar</a>
+            <button class="btn-outline" onclick="copyPageLink(this)">Copy link</button>
+        </div>
+        <div style="margin-top:10px;">
+            <button class="btn-outline" style="width:100%;" onclick="showForm()">Create new link</button>
+        </div>`;
+
+    if (isFuture) {
+        const iv = setInterval(() => {
+            const el = document.getElementById('countdown');
+            if (!el) { clearInterval(iv); return; }
+            el.textContent = countdown(date);
+        }, 1000);
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// DISPLAY — time-only (?t=&tz=…)
+// ══════════════════════════════════════════════════════════
+function displayTimeOnly(tParam, iana) {
+    const hh    = tParam.substr(0,2);
+    const mm    = tParam.substr(2,2) || '00';
+    const today = new Date().toISOString().substr(0,10);
+    try {
+        const utcDate   = localToUTC(today, `${hh}:${mm}`, iana);
+        const userTZ    = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const localTime = utcDate.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
+        const utcTime   = utcDate.toLocaleTimeString('en-US', { timeZone:'UTC', hour:'2-digit', minute:'2-digit', hour12:true });
+        const srcH      = parseInt(hh,10);
+        const srcStr    = `${String(srcH%12||12).padStart(2,'0')}:${mm} ${srcH>=12?'PM':'AM'}`;
+        const row       = TZ_DATA.find(([,,i]) => i === iana);
+        const srcLabel  = row ? row[0] : iana.replace(/_/g,' ');
+
+        document.getElementById('content').innerHTML = `
+            <div class="display-card">
+                <div class="display-label">Source time</div>
+                <div class="display-time-main">${srcStr}</div>
+                <div class="display-date-tz">${srcLabel}</div>
+                <hr class="display-sep">
+                <div class="display-row" style="margin-bottom:10px;">
+                    <span class="display-label">UTC</span>
+                    <span class="display-row-val">${utcTime}</span>
+                </div>
+                <div class="display-row">
+                    <span class="display-label">Your time</span>
+                    <span class="display-row-val">${localTime} &middot; ${userTZ}</span>
+                </div>
+            </div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:16px;">
+                Shown for today. Offset may differ around daylight saving transitions.
+            </p>
+            <div class="display-actions">
+                <button class="btn-outline" onclick="copyPageLink(this)">Copy link</button>
+                <button class="btn-outline" onclick="showForm()">Create new link</button>
+            </div>`;
+    } catch { showForm(); }
+}
+
+function copyPageLink(btn) {
+    navigator.clipboard.writeText(location.href).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 2000);
+    });
+}
+
+function countdown(target) {
+    const diff = target - new Date();
+    if (diff < 0) return 'This time has passed';
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const parts = [];
+    if (d) parts.push(`${d}d`);
+    if (h) parts.push(`${h}h`);
+    if (m) parts.push(`${m}m`);
+    parts.push(`${s}s`);
+    return parts.join(' ');
+}
+
+// ══════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════
+(function boot() {
+    const p = new URLSearchParams(location.search);
+    const iso = p.get('iso');
+    const t   = p.get('t');
+    const tz  = p.get('tz');
+
+    if (iso) {
+        try {
+            const d = parseISO(iso);
+            isNaN(d.getTime()) ? showForm() : displayDateTime(d);
+        } catch { showForm(); }
+    } else if (t && tz) {
+        displayTimeOnly(t, decodeURIComponent(tz));
+    } else {
+        showForm();
+    }
+})();
+</script>
+</body>
+</html>
